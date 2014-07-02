@@ -78,9 +78,9 @@ var promise = new Promise(function(
 
 ```javascript
 function worldDomination() {
-  hireHenchen(); // returns a promise
+  hireHenchmen(); // returns a promise
   .then(trainHenchmen) // returns another promise
-  .then(makeHenchemWork)
+  .then(makeHenchmemWork)
   .then(profit);
 }
 ```
@@ -90,11 +90,11 @@ function worldDomination() {
 ```javascript
 function giveMeFive() {
   var two = Promise.resolve(2);
-  var four = two.then(function(two) {
-    return two + two;
+  var four = two.then(function(result) {
+    return result + result;
   })
-  return four.then(function(four) {
-    return 1 + four;
+  return four.then(function(result) {
+    return 1 + result;
   });
 }
 ```
@@ -118,7 +118,8 @@ doSomethingAsync(function(err, val) {
 
 
 
-```javascript
+<pre>
+<code class="javascript overflow" style="max-height: initial;">
 -> % node boom.js 
 /home/greg/meetup/promises/boom.js:8
   user.setVal(val);
@@ -129,7 +130,8 @@ ReferenceError: user is not defined
     at Timer.listOnTimeout (timers.js:133:15)
 greg@archGreg [08:55:56] [~/meetup/promises]
 -> % CRASH !
-```
+</code>
+</pre>
 
 
 
@@ -139,7 +141,7 @@ greg@archGreg [08:55:56] [~/meetup/promises]
 
 
 ### Pokemon error handling
-```
+```javascript
 asyncStuff(function(err, val) {
   try {
     //...
@@ -153,7 +155,7 @@ asyncStuff(function(err, val) {
 
 
 ### With decorators
-```
+```javascript
 function catchThemAll(fn) {
   return function() {
     try {
@@ -168,7 +170,7 @@ asyncStuff(catchThemAll(callback));
 
 
 ### In node.js
-```
+```javascript
 process.on('uncaughtException', function(err) {
   // handle
 });
@@ -201,7 +203,7 @@ Promise.resolve()
 ### Advantage: handle error in one place
 And maybe even later if you don't feel it now
 
-```
+```javascript
 function randomService(id) {
   return db.findById(id)
   .then(checkObjectIsValid)
@@ -210,7 +212,7 @@ function randomService(id) {
 }
 ```
 No more
-```
+```javascript
 if(error) return callback(error);
 ```
 **everywhere**
@@ -305,7 +307,7 @@ asyncStuff()
 ### Real life example
 
 Using facebook API to post something on user's wall
-```
+```javascript
 FB.login(function(){
   FB.api(
     '/me/feed',
@@ -321,7 +323,7 @@ FB.login(function(){
 
 ### Promisified login
 
-```
+```javascript
 FB.login({scope: 'publish_actions'})
 .then(function() {
   FB.api(/* ... */);
@@ -332,7 +334,7 @@ FB.login({scope: 'publish_actions'})
 
 ### Passing promises around
 
-```
+```javascript
 var fbLogin = FB.login({scope: 'publish_actions'});
 
 function postStuff(msg) {
@@ -365,7 +367,7 @@ $.get('/api/user/abc')
 ```
 Goal: get all the posts for the given user:
 
-```
+```javascript
 function getUserPosts(userId)
 ```
 
@@ -398,7 +400,8 @@ function getUserPosts(userId, callback) {
 
 
 ### With promises
-```
+<pre>
+<code class="javascript overflow">
 function getUserPosts(userId) {
   return Promise.cast($.get('/api/user/'+userId))
   .then(function(user) {
@@ -409,13 +412,14 @@ function getUserPosts(userId) {
     return $.get('/api/post/'+postId);
   }).all();
 }
-```
+</code>
+</pre>
 
 
 
 ### Preserving order with `each`
 
-```
+```javascript
 Promise.resolve([uri1, uri2, uri3])
 .each(function(uri) {
   return $.get(uri);
@@ -426,7 +430,7 @@ Promise.resolve([uri1, uri2, uri3])
 
 ### Timeouts
 <pre>
-<code class=javascript style="overflow:visible">
+<code class="javascript overflow">
 function getWithTimeout(uri, time) {
   var jqXhr = $.get(uri);
   return Promise.resolve(jqXhr)
@@ -447,7 +451,7 @@ function getWithTimeout(uri, time) {
 ### With an event emitter
 
 <pre>
-<code class="javascript" style="overflow:visible">
+<code class="javascript overflow">
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/test');
 
@@ -468,19 +472,19 @@ Soooooo. All my code is inside the callback?
 
 ### Promisify this
 
-```
+```javascript
 function connect() {
-  var resolver = Promise.defer();
-  var db = mongoose.connection;
-  db.once('error', resolver.reject);
-  db.once('open', resolver.resolve);
-  return resolver.promise;
+  return new Promise(function(resolve, reject) {
+    var db = mongoose.connection;
+    db.once('error', reject);
+    db.once('open', resolve);
+  });
 }
 ```
 
 
 
-```
+```javascript
 var db = connect();
 function findAllUsers() {
   return db.then(function() {
@@ -497,7 +501,7 @@ function findAllUsers() {
 
 
 <pre>
-<code class="javascript" style="overflow:visible;font-size:.8em">
+<code class="javascript overflow" style="font-size:.8em">
 Promise.resolve().then(function outer() {
     return Promise.resolve().then(function inner() {
         return Promise.resolve().then(function evenMoreInner() {
@@ -550,7 +554,7 @@ From previous event:
 
 * Automatically warn you when you forget the `done`
 
-```
+```javascript
 Promise.resolve().then(function() {
   throw new Error('boom');
 });
@@ -608,15 +612,23 @@ Possibly unhandled Error: boom
 
 
 
+### Get bluebird with jQuery
+```javascript
+Promise.cast($.get(url))
+.then(...)
+.catch(...);
+```
+
+
 
 ### Promisifying event based api
 
 Like indexedDB, websocket, most of the DOM api
 
-```
+```javascript
 var request = store.put({
-"text": 'some text',
-"timeStamp" : Date.now()
+  "text": 'some text',
+  "timeStamp" : Date.now()
 });
 
 request.onsuccess = function(e) { /* do stuff */ };
@@ -626,14 +638,14 @@ request.onerror = function(e) { /* handle error */};
 
 
 
-### Use the defer() to wrap it inside a promise
+### Use the this pattern to wrap it inside a promise
 ```javascript
 store.putAsync = function(data) {
-  var resolver = Promise.defer();
-  var request = store.put(data);
-  request.onsuccess = resolver.resolve;
-  request.onerror = resolver.reject;
-  return resolver.promise;
+  return new Promise(function(resolve, reject) {
+    var request = store.put(data);
+    request.onsuccess = resolver.resolve;
+    request.onerror = resolver.reject;
+  });
 }
 ```
 
@@ -643,14 +655,14 @@ store.putAsync = function(data) {
 
 If you're using bluebird `Promise.promisifyAll`
 
-```
+```javascript
 var fs = Promise.promisifyAll(require('fs'));
 var file = fs.openAsync(path, 'r');
 file.then(function(fd) { ... });
 ```
 
 `Promise.nodeify`
-```
+```javascript
 function doAsyncStuff(callback) {
   return asyncWithPromise()
   .then(moreProcessing)
@@ -665,7 +677,7 @@ function doAsyncStuff(callback) {
 
 
 ### Coroutine support
-```
+```javascript
 Promise.coroutine(function* () {
   try {
     let db = yield connect();
