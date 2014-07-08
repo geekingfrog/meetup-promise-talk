@@ -803,3 +803,17 @@ async function getUsers() {
 
 * Front end: backbone, css3, canvas
 * Back end: node.js, mongodb, amazon cloud
+
+
+
+# Pxify is hiring!
+
+**[http://pxify.com](http://pxify.com/)**
+
+* Easy-to-use cross-platform design application
+  * "Github for designers" - collaboration platform
+
+* Meteor, Node.js, Node-webkit, SVG
+
+* Funded startup: GSFAccelerator (India)
+  * Looking for CTO and more developers
