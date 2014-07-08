@@ -1,7 +1,7 @@
-## Speakers
+## Speaker
 
 * Grégoire Charvet (geekingfrog.com)
-  * Full time node.js developper
+  * Full time node.js developper, former FE (ember.js) dev
   * Passionate about the web
   * Working on the web for almost 2 years now
 
@@ -78,11 +78,12 @@ var promise = new Promise(function(
 
 ```javascript
 function worldDomination() {
-  hireHenchmen(); // returns a promise
+  return hireHenchmen() // returns a promise
   .then(trainHenchmen) // returns another promise
   .then(makeHenchmemWork)
   .then(profit);
-}
+} // returns the final result:
+  // profit after world domination
 ```
 
 
@@ -98,6 +99,22 @@ function giveMeFive() {
   });
 }
 ```
+
+
+
+# Mixed values
+
+```javascript
+Promise.resolve(5)
+.then(function(five) {
+  return five+1; // returns a value
+})
+.then(function(six) {
+  return Promise.resolve(six+1); // returns a promise
+})
+.then(function(seven) { /* ... */ });
+```
+
 
 
 
@@ -146,7 +163,7 @@ asyncStuff(function(err, val) {
   try {
     //...
   } catch(error) {
-    // more ...
+    // handle ...
   }
 })
 ```
@@ -156,7 +173,7 @@ asyncStuff(function(err, val) {
 
 ### With decorators
 ```javascript
-function catchThemAll(fn) {
+function catchThemAll(fn) { // pokemon!
   return function() {
     try {
       return fn.apply(this, arguments);
@@ -176,6 +193,13 @@ process.on('uncaughtException', function(err) {
 });
 ```
 
+
+
+### In the browser
+Blow the current stack.
+
+<!-- .element: class="fragment" -->
+But the rest of the program keeps running as if nothing happend.
 
 
 ### With Promises
@@ -281,7 +305,7 @@ asyncStuff()
 
 
 # That's all
-<h3 class="fragment">for how promise works</h3>
+<h3 class="fragment">for how promises work</h3>
 
 
 
@@ -346,6 +370,21 @@ function postStuff(msg) {
 
 
 
+### Immutability
+* Once resolved or rejected: keeps memory of its state.
+* Still asynchronous (`process.setImmediate` or a shim)
+
+```javascript
+Promise.resolve(5)
+.then(function(stuff) { console.log(stuff); });
+console.log('done');
+```
+
+<pre class="fragment"><code class="javascript">// done</code></pre>
+<pre class="fragment"><code class="javascript">// 5</code></pre>
+
+
+
 ### Promises in the wild
 
 * `jQuery.ajax`, `jQuery.get` return promises
@@ -382,16 +421,17 @@ function getUserPosts(userId, callback) {
     $.get('/api/post/'+postId, callback);
   }
 
-  $.get('/api/user/'+userId, function(data) {
+  $.get('/api/user/'+userId, function onSuccess(data) {
     var asyncOperations = data.posts.map(function(postId) {
       return function(cb) { getUserPosts(postId, cb); }
-    })
-  })
+    });
 
-  async.parallel(asyncOperations, function(error, posts) {
-    if(error) //handle
-    else callback(posts);
-  })
+    async.parallel(asyncOperations, function(error, posts) {
+      if(error) return callback(error);
+      else callback(posts);
+    })
+
+  }, callback);
 }
 </code>
 </pre>
@@ -426,6 +466,8 @@ Promise.resolve([uri1, uri2, uri3])
 }).all();
 ```
 
+Equivalent of `async#serie`
+
 
 
 ### Timeouts
@@ -433,7 +475,7 @@ Promise.resolve([uri1, uri2, uri3])
 <code class="javascript overflow">
 function getWithTimeout(uri, time) {
   var jqXhr = $.get(uri);
-  return Promise.resolve(jqXhr)
+  return Promise.resolve(jqXhr) // same as Promise.cast
   .timeout(time)
   .catch(TimeoutError, CancellationError, function(e) {
     jqXhr.abort();
@@ -492,7 +534,7 @@ function findAllUsers() {
   })
 }
 ```
-* No concurrency issue: is my data there yet?
+* No concurrency issue: Am I connected yet? Can I use this object yet?
 
 
 
@@ -547,6 +589,7 @@ From previous event:
 </pre>
 
 ### Works in firefox and chrome too \o/
+**Be careful to performance cost**
 
 
 
@@ -643,8 +686,8 @@ request.onerror = function(e) { /* handle error */};
 store.putAsync = function(data) {
   return new Promise(function(resolve, reject) {
     var request = store.put(data);
-    request.onsuccess = resolver.resolve;
-    request.onerror = resolver.reject;
+    request.onsuccess = resolve;
+    request.onerror = reject;
   });
 }
 ```
@@ -680,8 +723,8 @@ function doAsyncStuff(callback) {
 ```javascript
 Promise.coroutine(function* () {
   try {
-    let db = yield connect();
-    let users = yield db.getUsers();
+    let db = yield connect(); // async
+    let users = yield db.getUsers(); // async again
     console.log('we got %d users here', users.length);
   } catch(err) {
     console.error('error:', err);
@@ -693,6 +736,25 @@ Promise.coroutine(function* () {
 
 
 
+# Preparing for ES7
+
+
+
+Async function can wait on promises
+```javascript
+async function getUsers() {
+  try {
+    let db = await connect(); // async
+    let users = await db.getUsers(); // async again
+    console.log('we got %d users here', users.length);
+  } catch(err) {
+    console.error('error:', err);
+  }
+}
+```
+
+
+
 # Conclusion
 
 
@@ -701,7 +763,7 @@ Promise.coroutine(function* () {
 * Easily composable/chainable
 * Can be passed around with a unified interface
 * Don't have to manually handle the order of async dependencies
-* With generators: coroutines \o/
+* Future proof: coroutine with generators and async functions with await.
 
 ### Downsides
 * A bit weird at first (very functional way of thinking)
@@ -712,3 +774,32 @@ Promise.coroutine(function* () {
 
 
 # Q&A
+
+
+
+#  
+
+
+
+
+# Announcements & Promotion
+
+
+
+## Thanks to Mozilla
+<img src="./img/mozilla.png">
+
+
+
+
+## Tonight's sponsor:
+<img src="./img/digbil.jpg">
+
+
+
+# Digbil is hiring!
+
+### Full javascript stack
+
+* Front end: backbone, css3, canvas
+* Back end: node.js, mongodb, amazon cloud
